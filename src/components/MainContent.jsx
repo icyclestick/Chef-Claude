@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import IngredientsList from "../components/IngredientsList"
 import ClaudeRecipe from "../components/ClaudeRecipe"
 import { getRecipeFromMistral } from "../api/ai"
@@ -9,10 +9,22 @@ export default function MainContent() {
 
     const [recipe, setRecipe] = useState("")
 
+    const recipeSection = useRef(null)
+
     function addIngredient(formData) {
         const newIngredient = formData.get("ingredient")
         setIngredients(prevIngredients => [...prevIngredients, newIngredient])
     }
+
+    useEffect(() => {
+        if (recipe) {
+            const yCoord = recipeSection.current.getBoundingClientRect().top + window.scrollY
+            window.scroll({
+                top: yCoord,
+                behavior: "smooth"
+            })
+        }
+    }, [recipe])
 
     async function getRecipe() {
         const recipeMarkdown = await getRecipeFromMistral(ingredients)
@@ -31,7 +43,7 @@ export default function MainContent() {
                 />
                 <button>Add Ingredient</button>
             </form>
-            {ingredients.length > 0 && <IngredientsList ingredients={ingredients} getRecipe={getRecipe} />}
+            {ingredients.length > 0 && <IngredientsList ingredients={ingredients} getRecipe={getRecipe} ref={recipeSection} />}
             {recipe && <ClaudeRecipe recipe={recipe} />}
         </main>
     )
